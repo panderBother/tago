@@ -5,6 +5,7 @@ interface ImportMetaEnv {
   readonly VITE_API_PROXY_TARGET?: string
   readonly VITE_API_BROWSER_PROXY?: string
   readonly VITE_API_CDP_URL?: string
+  readonly VITE_API_PROXY_SECURE?: string
   readonly VITE_USE_FIXTURES?: string
   readonly VITE_TAGO_DEV_EMAIL?: string
   readonly VITE_TAGO_DEV_PASSWORD?: string

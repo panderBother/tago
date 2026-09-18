@@ -15,6 +15,7 @@ export function useAuthFlow(mode?: Mode) {
   const message = shallowRef('')
   const error = shallowRef('')
   const recoveryRequestId = shallowRef('')
+  let countdownTimer: ReturnType<typeof setInterval> | undefined
 
   const emailValid = computed(() => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email.trim()))
   const passwordValid = computed(() => Array.from(form.password).length >= 8)
@@ -23,11 +24,27 @@ export function useAuthFlow(mode?: Mode) {
   const canVerify = computed(() => Boolean(challengeId.value && /^\d{6}$/.test(form.code.trim()) && passwordValid.value && passwordMatches.value))
 
   function beginCountdown(seconds: number) {
+    if (countdownTimer) clearInterval(countdownTimer)
     retryAfter.value = seconds
-    const timer = setInterval(() => {
+    countdownTimer = setInterval(() => {
       retryAfter.value -= 1
-      if (retryAfter.value <= 0) clearInterval(timer)
+      if (retryAfter.value <= 0 && countdownTimer) {
+        clearInterval(countdownTimer)
+        countdownTimer = undefined
+      }
     }, 1000)
+  }
+
+  function reset() {
+    Object.assign(form, { email: '', password: '', confirmPassword: '', code: '', nickname: '' })
+    if (countdownTimer) clearInterval(countdownTimer)
+    countdownTimer = undefined
+    challengeId.value = ''
+    retryAfter.value = 0
+    submitting.value = false
+    message.value = ''
+    error.value = ''
+    recoveryRequestId.value = ''
   }
 
   async function run<T>(task: () => Promise<T>) {
@@ -72,7 +89,12 @@ export function useAuthFlow(mode?: Mode) {
   }
 
   async function requestCode() {
-    if (!mode || !canRequestCode.value) return false
+    if (!mode) return false
+    if (!emailValid.value) {
+      error.value = '请输入有效邮箱后再获取验证码'
+      return false
+    }
+    if (!canRequestCode.value) return false
     return run(async () => {
       const result = mode === 'register'
         ? await requestRegistrationCode({ email: form.email.trim() })
@@ -85,8 +107,21 @@ export function useAuthFlow(mode?: Mode) {
   }
 
   async function verify() {
-    if (!mode || !canVerify.value) {
-      error.value = '请填写 6 位验证码，并确认两次密码一致'
+    if (!mode) return false
+    if (!challengeId.value) {
+      error.value = '请先发送并获取邮箱验证码'
+      return false
+    }
+    if (!/^\d{6}$/.test(form.code.trim())) {
+      error.value = '请输入邮件中的 6 位验证码'
+      return false
+    }
+    if (!passwordValid.value) {
+      error.value = '密码至少需要 8 位'
+      return false
+    }
+    if (!passwordMatches.value) {
+      error.value = '两次输入的密码不一致'
       return false
     }
     return run(async () => {
@@ -122,6 +157,7 @@ export function useAuthFlow(mode?: Mode) {
     passwordMatches,
     canRequestCode,
     canVerify,
+    reset,
     signIn,
     recover,
     requestCode,

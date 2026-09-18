@@ -8,13 +8,14 @@ export default defineConfig(({ mode }) => {
   const env = loadEnv(mode, process.cwd(), '')
   const proxyTarget = env.VITE_API_PROXY_TARGET
   const browserProxyEnabled = env.VITE_API_BROWSER_PROXY === 'true'
+  const proxySecure = env.VITE_API_PROXY_SECURE === 'true'
   const upstreamOrigin = proxyTarget ? new URL(proxyTarget).origin : ''
   const proxy = proxyTarget && !browserProxyEnabled
     ? {
         '/api': {
           target: proxyTarget,
           changeOrigin: true,
-          secure: true,
+          secure: proxySecure,
         },
       }
     : undefined

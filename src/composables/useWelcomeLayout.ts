@@ -1,5 +1,10 @@
 import { computed, shallowRef } from 'vue'
 
+interface ViewportSize {
+  width: number
+  height: number
+}
+
 const IMAGE_WIDTH = 941
 const IMAGE_HEIGHT = 1672
 
@@ -11,7 +16,7 @@ const CTA_BOX = {
 }
 
 export function useWelcomeLayout() {
-  const viewport = shallowRef({ width: 0, height: 0 })
+  const viewport = shallowRef<ViewportSize>(readViewport())
 
   const layout = computed(() => {
     const vw = viewport.value.width
@@ -47,9 +52,20 @@ export function useWelcomeLayout() {
   })
 
   function syncViewport(size?: { windowWidth: number, windowHeight: number }) {
-    const source = size ?? uni.getSystemInfoSync()
-    viewport.value = { width: source.windowWidth, height: source.windowHeight }
+    viewport.value = size
+      ? { width: size.windowWidth, height: size.windowHeight }
+      : readViewport()
   }
 
   return { layout, syncViewport }
+}
+
+function readViewport() {
+  try {
+    const info = uni.getSystemInfoSync()
+    return { width: info.windowWidth, height: info.windowHeight }
+  }
+  catch {
+    return { width: 375, height: 667 }
+  }
 }
