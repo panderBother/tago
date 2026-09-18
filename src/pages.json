@@ -1,0 +1,32 @@
+{
+  "easycom": {
+    "autoscan": true,
+    "custom": { "^wd-(.*)": "wot-design-uni/components/wd-$1/wd-$1.vue" }
+  },
+  "pages": [
+    { "path": "pages/auth/welcome", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/auth/login", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/auth/register", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/auth/reset", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/account/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/service/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/admin/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/exposure/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/discover/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/meet/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/applications/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/tag/compose", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/tag/history", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/tag/respond", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/tag/compare", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/chat/index", "style": { "navigationStyle": "custom" } },
+    { "path": "pages/gift/timeline", "style": { "navigationStyle": "custom" } }
+  ],
+  "globalStyle": {
+    "navigationBarTextStyle": "black",
+    "navigationBarTitleText": "TAGO",
+    "navigationBarBackgroundColor": "#F8F4E9",
+    "backgroundColor": "#F8F4E9",
+    "backgroundTextStyle": "dark"
+  }
+}

@@ -1,0 +1,5526 @@
+---
+openapi: 3.1.0
+info:
+  description: TAGO MVP 冻结契约。该文档只描述公开 HTTP/COLA 形态；真实可用性、实现差异和验证状态见每个操作的 x-tago 元数据。共享
+    Swagger Site 为只读文档，实际 API Base URL 由部署环境提供。
+  title: TAGO API MVP
+  version: 1.0.0-rc.3
+  license:
+    name: TAGO internal API contract
+servers:
+- description: 相对 API 地址；实际 Base URL 由部署环境提供。
+  url: "/"
+tags:
+- description: 邮箱身份、网页会话和密码管理
+  name: 身份认证
+- description: Coin 余额与不可变流水查询
+  name: 钱包
+- description: 业务会话和 Tinode P2P 接入
+  name: 聊天
+- description: Tag、发现推荐和认识申请
+  name: 社交
+- description: 内测 Coin 竞价与曝光查询
+  name: 赠币曝光
+- description: 对外展示的身份资料
+  name: 公共身份
+paths:
+  "/api/v1/account/password":
+    put:
+      description: |-
+        需要当前会话和旧密码；修改成功后撤销全部终端登录。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityChangePassword
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ChangePasswordInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponsePasswordChangeView"
+          description: 密码修改成功
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '429':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 登录尝试超过限流窗口
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+      security:
+      - webSession: []
+      summary: 修改当前账号密码
+      tags:
+      - 身份认证
+      x-tago: &10
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/account/profile":
+    get:
+      operationId: publicIdentityGet
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseView"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 读取当前公共身份
+      tags:
+      - 公共身份
+      x-tago: &11
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+    put:
+      operationId: publicIdentityUpdate
+      parameters:
+      - description: 通过 GET /api/v1/auth/csrf 获取
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/PublicIdentityUpdate"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseView"
+          description: OK
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 修改公共身份
+      tags:
+      - 公共身份
+      x-tago: &12
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/applications":
+    get:
+      operationId: listIntroductionApplications
+      parameters:
+      - in: query
+        name: direction
+        required: false
+        schema:
+          default: ALL
+          type: string
+      - in: query
+        name: state
+        required: false
+        schema:
+          type: string
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseApplicationPage"
+              examples:
+                empty-applications:
+                  summary: empty-applications
+                  value:
+                    success: true
+                    data:
+                      items: []
+                      nextCursor:
+                      hasMore: false
+          description: 已返回当前用户可见申请的分页结果
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+      security:
+      - webSession: []
+      summary: 列出我的认识申请
+      tags:
+      - 社交
+      x-tago: &13
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 申请方向、状态和 keyset 游标需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。
+        已知限制：申请方向、状态和 keyset 游标需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/applications/{applicationId}":
+    get:
+      description: |-
+        只允许申请双方读取各自有权限的答案。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 已知限制：双方答案可见性和接受后恢复查询需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: getIntroductionApplication
+      parameters:
+      - description: Application ID
+        in: path
+        name: applicationId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseApplicationView"
+          description: 已返回申请
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 无权读取该申请
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 申请不存在
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 读取认识申请
+      tags:
+      - 社交
+      x-tago: &14
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 双方答案可见性和接受后恢复查询需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/applications/{applicationId}/accept":
+    post:
+      description: |-
+        只有发布者可以接受；同一申请重复接受返回原会话和相遇结果。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：会话与相遇创建的真实幂等结果需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: acceptIntroductionApplication
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Application ID
+        in: path
+        name: applicationId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseAcceptanceView"
+          description: 申请已接受
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 申请已过期、状态冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 会话存储暂不可用
+      security:
+      - webSession: []
+      summary: 接受认识申请
+      tags:
+      - 社交
+      x-tago: &15
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 会话与相遇创建的真实幂等结果需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/applications/{applicationId}/reject":
+    post:
+      description: |-
+        只有发布者可以拒绝；申请一旦拒绝不能对同一 Tag 重新提交。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：拒绝、过期和再次相遇的真实状态需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: rejectIntroductionApplication
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Application ID
+        in: path
+        name: applicationId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseApplicationView"
+          description: 申请已拒绝
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 申请已过期、状态冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 拒绝认识申请
+      tags:
+      - 社交
+      x-tago: &16
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 拒绝、过期和再次相遇的真实状态需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/auth/csrf":
+    get:
+      description: |-
+        浏览器在每次变更请求前获取令牌；登录和退出后需要重新获取。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityGetCsrf
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseCsrfView"
+          description: 已返回 CSRF 令牌
+      summary: 获取 CSRF 令牌
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &17
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/auth/login":
+    post:
+      description: |-
+        登录成功后建立一个有限的网页 Cookie 会话；同一账号的其他网页登录保持有效。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityLogin
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/LoginInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseSessionView"
+          description: 登录成功
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 邮箱或密码不正确
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 登录会话已达到上限
+        '429':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 登录尝试超过限流窗口
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 邮箱密码登录
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &18
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/login/recover":
+    post:
+      description: |-
+        凭证验证成功且明确确认后，撤销该账号其他登录并建立当前网页会话。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityRecoverLogin
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RecoveryInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseSessionView"
+          description: 已建立恢复会话
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseSessionView"
+          description: 未确认恢复或登录容量冲突
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 重新验证并撤销其他登录
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &19
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/logout":
+    post:
+      description: |-
+        清理当前网页会话；即使会话已经失效也返回成功，便于客户端幂等清理本地状态。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityLogout
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseLogoutView"
+          description: 已退出当前会话
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 退出当前网页会话
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &20
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/logout-all":
+    post:
+      description: |-
+        撤销当前账号的全部网页登录和 Tinode 接入资格。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityLogoutAll
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseLogoutView"
+          description: 已撤销全部会话
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 退出全部网页会话
+      tags:
+      - 身份认证
+      x-tago: &21
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/password-reset":
+    post:
+      description: |-
+        重置成功后撤销该账号的全部网页和移动终端登录标识。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityResetPassword
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/VerificationInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 密码重置成功
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数或验证码无效
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 使用验证码重置密码
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &22
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/password-reset-codes":
+    post:
+      description: |-
+        请求仅表示受理；验证码仅用于密码重置，不能用于注册。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityRequestPasswordResetCode
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/EmailInput"
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseCodeRequest"
+          description: 请求已受理
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 邮箱参数无效
+        '429':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 验证码请求超过限流窗口
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 申请密码重置验证码
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &23
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/register":
+    post:
+      description: |-
+        验证码验证和账号创建在同一事务中完成；成功后通常建立网页会话。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityRegister
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/VerificationInput"
+        required: true
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseRegistrationView"
+          description: 账号已创建
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数或验证码无效
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 账号无法创建
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 使用邮箱验证码注册
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &24
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/registration-codes":
+    post:
+      description: |-
+        请求仅表示受理，不保证邮件最终送达；不存在账号时也不会泄露账号状态。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 需要 X-CSRF-TOKEN。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityRequestRegistrationCode
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录或退出后重新获取。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/EmailInput"
+        required: true
+      responses:
+        '202':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseCodeRequest"
+          description: 请求已受理
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 邮箱参数无效
+        '429':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 验证码请求超过限流窗口
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 申请注册验证码
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &25
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/auth/session":
+    get:
+      description: |-
+        无会话时返回游客状态；过期或撤销的会话返回 401。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：公开 HTTP 入口。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: identityGetSession
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseSessionView"
+          description: 已返回当前会话状态
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 会话已过期或被撤销
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 身份存储暂不可用
+      summary: 读取当前会话
+      tags:
+      - 身份认证
+      security: []
+      x-tago: &26
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: public
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/avatars":
+    get:
+      operationId: publicIdentityAvatars
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseListAvatar"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 读取预设头像目录
+      tags:
+      - 公共身份
+      x-tago: &27
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/chats":
+    get:
+      operationId: chatList
+      parameters:
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseConversationPage"
+              examples:
+                empty-conversations:
+                  summary: empty-conversations
+                  value:
+                    success: true
+                    data:
+                      items: []
+                      nextCursor:
+                      hasMore: false
+          description: 已返回当前用户关系目录分页结果
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+      security:
+      - webSession: []
+      summary: 列出当前用户的永久会话
+      tags:
+      - 聊天
+      x-tago: &28
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 关系目录读取和 keyset 分页需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：关系目录读取和 keyset 分页需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/chats/connection":
+    post:
+      description: |-
+        凭证一次性消费并绑定当前 TAGO loginId，不包含消息或 topic 列表
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 已知限制：Tinode REST auth、一次性 ticket 和浏览器连接尚无本轮 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: chatConnection
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseChatConnection"
+              examples:
+                chat-connection-success:
+                  summary: chat-connection-success
+                  value:
+                    success: true
+                    data:
+                      endpoint: https://tinode.example.invalid
+                      apiKey: public-demo-key
+                      authenticationScheme: tago
+                      ticket: mock-ticket-never-real
+                      ticketExpiresAt: '2026-09-16T00:05:00Z'
+          description: 已返回 Tinode 接入凭证
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+              examples:
+                im-recovery-pending:
+                  summary: im-recovery-pending
+                  value:
+                    success: false
+                    errCode: IM_RECOVERY_PENDING
+                    errMessage: 聊天接入正在恢复，请稍后重试。
+          description: Tinode 接入暂不可用；恢复中返回 IM_RECOVERY_PENDING 且不包含 ticket。
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 签发当前登录的 Tinode 接入凭证
+      tags:
+      - 聊天
+      x-tago: &29
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - Tinode REST auth、一次性 ticket 和浏览器连接尚无本轮 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+  "/api/v1/chats/resolve":
+    post:
+      operationId: chatResolvePeers
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ResolveInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseListConversationView"
+          description: OK
+        '403':
+          description: CSRF 令牌无效或无权访问
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '400':
+          description: peerHandles 为空、过长或格式无效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 批量解析 Tinode peer 到业务会话
+      tags:
+      - 聊天
+      x-tago: &30
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 批量 peer 映射和权限结果需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        需要 X-CSRF-TOKEN。 已知限制：批量 peer 映射和权限结果需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/chats/{conversationId}":
+    get:
+      operationId: chatDetail
+      parameters:
+      - in: path
+        name: conversationId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseConversationDetailView"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 查看业务会话摘要
+      tags:
+      - 聊天
+      x-tago: &31
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 首遇、最近相遇及公共身份投影需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：首遇、最近相遇及公共身份投影需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/chats/{conversationId}/connection":
+    post:
+      operationId: chatConversationConnection
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - in: path
+        name: conversationId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseChatConversationConnection"
+              examples:
+                conversation-connection:
+                  summary: conversation-connection
+                  value:
+                    success: true
+                    data:
+                      conversationId: 44444444-4444-4444-8444-444444444444
+                      topicHandle: usr-demo-peer
+          description: 已返回当前用户视角的 P2P topic 句柄
+        '403':
+          description: 当前用户不是会话成员
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: Tinode 接入暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 准备当前用户访问某个 Tinode P2P
+      tags:
+      - 聊天
+      x-tago: &32
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 真实 Tinode topic 句柄连接尚无本轮 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        需要 X-CSRF-TOKEN。 已知限制：真实 Tinode topic 句柄连接尚无本轮 Dev 证据。 验证：已完成本地规范与实例校验；真实
+        Dev 请求尚未核验
+  "/api/v1/chats/{conversationId}/encounters":
+    get:
+      operationId: chatEncounterList
+      summary: 列出会话中的相遇历史
+      description: |-
+        仅会话成员可读；按 acceptedAt、id 倒序返回不可变相遇快照，同一时间以 id 倒序稳定排序。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 已知限制：已按 acceptedAt、id 倒序约定；成员分页需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      parameters:
+      - name: conversationId
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 1
+          maximum: 100
+          default: 20
+      - name: cursor
+        in: query
+        required: false
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          description: 已返回相遇历史
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseEncounterPage"
+              examples:
+                empty-encounters:
+                  summary: empty-encounters
+                  value:
+                    success: true
+                    data:
+                      items: []
+                      nextCursor:
+                      hasMore: false
+                accepted-encounter:
+                  summary: accepted-encounter
+                  value:
+                    success: true
+                    data:
+                      items:
+                      - id: 55555555-5555-4555-8555-555555555555
+                        tagId: 33333333-3333-4333-8333-333333333333
+                        summary: 一起讨论城市与阅读
+                        truncated: false
+                        acceptedAt: '2026-09-16T00:00:00Z'
+                      nextCursor:
+                      hasMore: false
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '403':
+          description: 不是会话成员
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '404':
+          description: 会话不存在
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      tags:
+      - 聊天
+      x-tago: &33
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 已按 acceptedAt、id 倒序约定；成员分页需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/chats/{conversationId}/encounters/{encounterId}":
+    get:
+      description: |-
+        仅会话成员可读；当前公共身份与申请提交时的历史快照分别返回。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 已知限制：申请快照授权和不存在区分需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: getEncounterDetail
+      parameters:
+      - description: Conversation ID
+        in: path
+        name: conversationId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: Encounter ID
+        in: path
+        name: encounterId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseEncounterDetailView"
+          description: 已返回相遇详情
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 不是会话成员
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 会话或相遇不存在
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 读取指定相遇及申请快照
+      tags:
+      - 社交
+      x-tago: &34
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: contract-owner
+        knownGaps:
+        - 申请快照授权和不存在区分需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/discovery":
+    get:
+      description: |-
+        返回 NATURAL 或 PERSONALIZED 推荐；理由只能引用公开 Tag 内容。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 已知限制：缓存、刷新冷却和自然回退排序需要 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: discoverTags
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseDiscoveryView"
+              examples:
+                discovery-fallback:
+                  summary: discovery-fallback
+                  value:
+                    success: true
+                    data:
+                      mode: NATURAL
+                      reason: 按最近发布排序
+                      items: []
+                      refreshRecommended: true
+                      refreshAfter:
+                      source: RECENT
+                      degraded: true
+                      generatedAt: '2026-09-16T00:00:00Z'
+                discovery-personalized:
+                  summary: discovery-personalized
+                  value:
+                    success: true
+                    data:
+                      mode: PERSONALIZED
+                      reason: 与你的公开 Tag 内容相近
+                      items:
+                      - tagId: 33333333-3333-4333-8333-333333333333
+                        ownerId: 22222222-2222-4222-8222-222222222222
+                        body: 一起讨论城市与阅读
+                        questions:
+                        - 最近一次让你改变想法的阅读是什么？
+                        - 你愿意和陌生人聊什么？
+                        - 怎样的周末会让你觉得充实？
+                        score: 0.86
+                        reason: 公开内容与阅读和城市话题相近
+                        evidenceRefs:
+                        - body
+                        - question:1
+                        mode: PERSONALIZED
+                        ownerIdentity:
+                          publicId: TG7K9M3Q2A
+                          displayName: 会飞的西瓜0001
+                          avatarId: default-0
+                          version: 0
+                          updatedAt: '2026-09-16T00:00:00Z'
+                      refreshRecommended: false
+                      refreshAfter:
+                      source: MODEL
+                      degraded: false
+                      generatedAt: '2026-09-16T00:00:00Z'
+                discovery-refresh-cooldown:
+                  summary: discovery-refresh-cooldown
+                  value:
+                    success: true
+                    data:
+                      mode: NATURAL
+                      reason: 刷新冷却中，继续使用当前结果
+                      items: []
+                      refreshRecommended: false
+                      refreshAfter: '2026-09-16T00:01:00Z'
+                      source: CACHE
+                      degraded: false
+                      generatedAt: '2026-09-16T00:00:00Z'
+          description: 已返回推荐
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 推荐 AI 或索引暂不可用
+      security:
+      - webSession: []
+      summary: 读取发现推荐
+      tags:
+      - 社交
+      x-tago: &35
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 缓存、刷新冷却和自然回退排序需要 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/discovery/refresh":
+    post:
+      description: |-
+        触发一次受控推荐重算；AI 失败时返回自然排序降级结果。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：刷新冷却、同键重放和 AI 结果未知需要 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: refreshDiscovery
+      parameters:
+      - in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录、退出或密码操作后重新获取。
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+        description: 相同请求可回放原响应；请求内容不同返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseDiscoveryView"
+          description: 已返回推荐
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 刷新状态冲突或同键请求内容不同
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '429':
+          description: 刷新仍在冷却窗口
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      security:
+      - webSession: []
+      summary: 显式刷新发现推荐
+      tags:
+      - 社交
+      x-tago: &36
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 刷新冷却、同键重放和 AI 结果未知需要 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/exposure":
+    get:
+      description: |-
+        市场价格按全局事实返回；当前 Tag 对被拉黑的访问者隐藏。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 已知限制：资金事务和权益结算由业务工作包验收，尚无受控 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: exposureCurrent
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureCurrent"
+              examples:
+                top-empty:
+                  summary: top-empty
+                  value:
+                    success: true
+                    data:
+                      entitlementId:
+                      tagId:
+                      paidCoin: '0'
+                      expiresAt:
+                      serverTime: '2026-09-16T00:00:00Z'
+                      minimumBid: '6'
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取当前 TOP
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &37
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 资金事务和权益结算由业务工作包验收，尚无受控 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/exposure/bids":
+    get:
+      operationId: exposureBids
+      parameters:
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      - name: cursor
+        in: query
+        required: false
+        description: 不透明 keyset 游标；必须沿用同一方向、状态、会话或用户筛选条件，下一页使用上一页的 nextCursor。
+        schema:
+          type: string
+          minLength: 1
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureBidPage"
+              examples:
+                accepted-bid:
+                  summary: accepted-bid
+                  value:
+                    success: true
+                    data:
+                      items:
+                      - bidId: 88888888-8888-4888-8888-888888888888
+                        tagId: 33333333-3333-4333-8333-333333333333
+                        offeredCoin: '6'
+                        createdAt: '2026-09-16T00:00:00Z'
+                        entitlementId: 99999999-9999-4999-8999-999999999999
+                        status: ACCEPTED
+                        paidCoin: '6'
+                        acceptedAt: '2026-09-16T00:00:00Z'
+                        expiresAt: '2026-09-16T00:15:00Z'
+                        failureCode:
+                        entitlementState: TOP
+                        endedAt:
+                        endReason:
+                      nextCursor:
+                      hasMore: false
+                rejected-bid:
+                  summary: rejected-bid
+                  value:
+                    success: true
+                    data:
+                      items:
+                      - bidId: aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa
+                        tagId: 33333333-3333-4333-8333-333333333333
+                        offeredCoin: '6'
+                        createdAt: '2026-09-16T00:01:00Z'
+                        entitlementId:
+                        status: REJECTED
+                        paidCoin: '0'
+                        acceptedAt:
+                        expiresAt:
+                        failureCode: BID_TOO_LOW
+                        entitlementState:
+                        endedAt:
+                        endReason:
+                      nextCursor:
+                      hasMore: false
+          description: 已返回本人竞价记录分页结果
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取本人竞价结果
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &38
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 竞价历史投影和分页由业务工作包验收，尚无受控 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。
+        已知限制：竞价历史投影和分页由业务工作包验收，尚无受控 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+    post:
+      operationId: exposureBid
+      parameters:
+      - in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+        description: 使用 GET /api/v1/auth/csrf 返回的 data.token；登录、退出或密码操作后重新获取。
+      - in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+        description: 相同请求可回放原响应；请求内容不同返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ExposureBidInput"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureBidResult"
+              examples:
+                accepted-bid:
+                  summary: accepted-bid
+                  value:
+                    success: true
+                    data:
+                      bidId: 88888888-8888-4888-8888-888888888888
+                      tagId: 33333333-3333-4333-8333-333333333333
+                      offeredCoin: '6'
+                      createdAt: '2026-09-16T00:00:00Z'
+                      entitlementId: 99999999-9999-4999-8999-999999999999
+                      status: ACCEPTED
+                      paidCoin: '6'
+                      acceptedAt: '2026-09-16T00:00:00Z'
+                      expiresAt: '2026-09-16T00:15:00Z'
+          description: OK
+        '403':
+          description: 无权竞价或 CSRF 令牌无效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '401':
+          description: 未登录
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '400':
+          description: Tag、版本、Coin 或 Idempotency-Key 无效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '409':
+          description: BID_TOO_LOW、INSUFFICIENT_BALANCE、ALREADY_TOP、VERSION_CONFLICT
+            或 IDEMPOTENCY_CONFLICT；拒绝时不扣款
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+              examples:
+                bid-too-low:
+                  summary: bid-too-low
+                  value:
+                    success: false
+                    errCode: BID_TOO_LOW
+                    errMessage: 报价低于当前最低竞价，未扣除 Coin。
+                insufficient-balance:
+                  summary: insufficient-balance
+                  value:
+                    success: false
+                    errCode: INSUFFICIENT_BALANCE
+                    errMessage: 余额不足，未扣除 Coin。
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 提交即时竞价
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &39
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 余额、拒绝未扣款、幂等重放和并发由业务工作包验收。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。
+        需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。
+        已知限制：余额、拒绝未扣款、幂等重放和并发由业务工作包验收。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/exposure/bids/{bidId}":
+    get:
+      operationId: exposureBidResult
+      parameters:
+      - in: path
+        name: bidId
+        required: true
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureBid"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '404':
+          description: 竞价不存在或不属于当前用户
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取指定竞价结果
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &40
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 本人可见范围和拒绝记录读取由业务工作包验收。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。
+        已知限制：本人可见范围和拒绝记录读取由业务工作包验收。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/exposure/carousel":
+    get:
+      description: |-
+        只返回当前访问者有权查看的有效轮播 Tag。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。 已知限制：轮播、回补和到期结算由业务工作包验收。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: exposureCarousel
+      parameters:
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureCarouselPage"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取轮播权益
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &41
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 轮播、回补和到期结算由业务工作包验收。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/exposure/rules":
+    get:
+      operationId: exposureRules
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseExposureRules"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 资金或曝光存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取曝光竞价规则
+      tags:
+      - 赠币曝光
+      security:
+      - webSession: []
+      x-tago: &42
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_WITH_GAPS
+        owner: business-commerce
+        knownGaps:
+        - 规则版本和生产资金 Gate 尚无 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_WITH_GAPS。 认证：需要 webSession Cookie。
+        已知限制：规则版本和生产资金 Gate 尚无 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/tags":
+    post:
+      description: |-
+        创建当前用户唯一的 Draft Tag；需要 Idempotency-Key 以支持安全重试。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: createTag
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: 相同请求可回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CreateTag"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 草稿已创建
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 已有 Draft 或请求幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 创建 Tag 草稿
+      tags:
+      - 社交
+      x-tago: &43
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/history":
+    get:
+      description: |-
+        只返回当前用户已经结束的 CLOSED、REPLACED 或 EXPIRED Tag，按结束时间倒序分页。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 已知限制：历史 Tag 只读分页、终态过滤和本人权限需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: listMyTagHistory
+      parameters:
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      - in: query
+        name: cursor
+        required: false
+        schema:
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagHistoryPage"
+          description: 已返回历史 Tag
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 分页参数或游标无效
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+      security:
+      - webSession: []
+      summary: 读取我的历史 Tag
+      tags:
+      - 社交
+      x-tago: &44
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 历史 Tag 只读分页、终态过滤和本人权限需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/tags/history/detail/{tagId}":
+    get:
+      description: |-
+        只允许 Tag 所有人读取已结束 Tag 的只读正文、问题和发布者答案快照。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 已知限制：历史 Tag 详情的所有权、终态和公开接口隔离需要 Dev/集成证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: getMyTagHistory
+      parameters:
+      - description: 历史 Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagHistoryDetail"
+          description: 已返回历史 Tag 详情
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: Tag 不存在、非本人所有或仍处于当前状态
+      security:
+      - webSession: []
+      summary: 读取我的历史 Tag 详情
+      tags:
+      - 社交
+      x-tago: &45
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 历史 Tag 详情的所有权、终态和公开接口隔离需要 Dev/集成证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/tags/mine":
+    get:
+      description: |-
+        返回当前 Draft 或有效 Tag；如果两者同时存在，兼容接口返回 Draft。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: getMyTag
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagMineView"
+              examples:
+                draft-and-active:
+                  summary: draft-and-active
+                  value:
+                    success: true
+                    data:
+                      draft:
+                        id: 11111111-1111-4111-8111-111111111111
+                        ownerId: 22222222-2222-4222-8222-222222222222
+                        body: 寻找喜欢长谈的人
+                        duration: WEEK
+                        encounterMode: ONLINE
+                        state: DRAFT
+                        version: 3
+                        publishedAt:
+                        expiresAt:
+                        questions: []
+                        publisherAnswers: []
+                        embedding:
+                        ownerIdentity:
+                          publicId: TG7K9M3Q2A
+                          displayName: 会飞的西瓜0001
+                          avatarId: default-0
+                          version: 0
+                          updatedAt: '2026-09-16T00:00:00Z'
+                        naturalExpiresAt:
+                      active:
+                        id: 33333333-3333-4333-8333-333333333333
+                        ownerId: 22222222-2222-4222-8222-222222222222
+                        body: 一起讨论城市与阅读
+                        duration: MONTH
+                        encounterMode: BOTH
+                        state: PUBLISHED
+                        version: 5
+                        publishedAt: '2026-09-15T10:00:00Z'
+                        expiresAt: '2026-10-15T10:00:00Z'
+                        questions:
+                        - slot: 1
+                          questionVersion: 2
+                          text: 最近一次让你改变想法的阅读是什么？
+                          generated: true
+                          refreshCount: 1
+                          customizationUnlocked: false
+                        - slot: 2
+                          questionVersion: 2
+                          text: 你愿意和陌生人聊什么？
+                          generated: true
+                          refreshCount: 0
+                          customizationUnlocked: false
+                        - slot: 3
+                          questionVersion: 2
+                          text: 怎样的周末会让你觉得充实？
+                          generated: true
+                          refreshCount: 2
+                          customizationUnlocked: false
+                        publisherAnswers:
+                        - slot: 1
+                          questionVersion: 2
+                          text: 一本关于城市生活的随笔。
+                        - slot: 2
+                          questionVersion: 2
+                          text: 书、散步和那些没聊完的问题。
+                        - slot: 3
+                          questionVersion: 2
+                          text: 去一个没去过的街区慢慢走。
+                        embedding:
+                        ownerIdentity:
+                          publicId: TG7K9M3Q2A
+                          displayName: 会飞的西瓜0001
+                          avatarId: default-0
+                          version: 0
+                          updatedAt: '2026-09-16T00:00:00Z'
+                        naturalExpiresAt: '2026-10-15T10:00:00Z'
+          description: 已返回当前用户的 Tag
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+      security:
+      - webSession: []
+      summary: 读取当前用户的 Tag
+      tags:
+      - 社交
+      x-tago: &46
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+  "/api/v1/tags/{tagId}":
+    get:
+      description: |-
+        只返回仍然有效的公开正文和问题，不返回发布者答案。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: getPublicTag
+      parameters:
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 已返回公开 Tag
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: Tag 不存在或已失效
+      security:
+      - webSession: []
+      summary: 读取公开 Tag
+      tags:
+      - 社交
+      x-tago: &47
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+    put:
+      description: |-
+        仅 Draft 可修改；expectedVersion 不匹配返回 VERSION_CONFLICT。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: editTagBody
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/EditBody"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 草稿正文已修改
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 版本冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 修改 Tag 草稿正文
+      tags:
+      - 社交
+      x-tago: &48
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/answers/{slot}":
+    put:
+      description: |-
+        答案绑定当前问题版本；问题变化后必须重新回答。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: savePublisherAnswer
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: slot
+        required: true
+        schema:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/PublisherAnswer"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 答案已保存
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: slot、答案或请求参数无效，或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 答案版本、Tag 版本或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 保存发布者答案
+      tags:
+      - 社交
+      x-tago: &49
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/applications":
+    post:
+      description: |-
+        申请者必须按当前问题版本回答三题；提交后保存不可变快照。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: submitIntroductionApplication
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/SubmitApplication"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseApplicationView"
+          description: 申请已提交
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 答案或请求参数无效，或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '404':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: Tag 不存在或已失效
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 答案版本、重复申请或幂等冲突
+      security:
+      - webSession: []
+      summary: 提交认识申请
+      tags:
+      - 社交
+      x-tago: &50
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/close":
+    post:
+      description: |-
+        关闭 Draft 或已发布 Tag，并按规则处理待处理申请。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: closeTag
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: Tag 已关闭
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求无效或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: Tag 状态或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 关闭 Tag
+      tags:
+      - 社交
+      x-tago: &51
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/publish":
+    post:
+      description: |-
+        要求三道当前问题都有发布者答案；发布后正文、问题和答案冻结。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: publishTag
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ExpectedVersion"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: Tag 已发布
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: Tag 未准备好、版本冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 发布 Tag
+      tags:
+      - 社交
+      x-tago: &52
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/questions/generate":
+    post:
+      description: |-
+        首次生成恰好三道问题；AI 结果会与当前 Draft 版本一起提交。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: generateTagQuestions
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/ExpectedVersion"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 问题已生成
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 请求参数无效或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 版本冲突、问题状态冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: AI 或社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 生成三道问题
+      tags:
+      - 社交
+      x-tago: &53
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/questions/{slot}":
+    put:
+      description: |-
+        正常问题成功刷新 5 次后才能手工编辑；首次 AI 出题失败的草稿可直接手工填写。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: customizeTagQuestion
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: slot
+        required: true
+        schema:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/CustomizeQuestion"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 问题已修改
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: slot、问题内容或请求参数无效，或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 手工编辑尚未解锁、版本冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 手工编辑问题
+      tags:
+      - 社交
+      x-tago: &54
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/tags/{tagId}/questions/{slot}/refresh":
+    post:
+      description: |-
+        每个问题最多成功刷新 5 次；第 6 次返回 QUESTION_REFRESH_LIMIT_REACHED 且不会调用 AI。
+
+        契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。 需要 X-CSRF-TOKEN。 需要 Idempotency-Key；同键重放保持原响应，内容不同返回 IDEMPOTENCY_CONFLICT。 已知限制：尚无与本次发布提交对应的受控 Dev 请求证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+      operationId: refreshTagQuestion
+      parameters:
+      - description: 使用 GET /api/v1/auth/csrf 返回的 data.token。
+        in: header
+        name: X-CSRF-TOKEN
+        required: true
+        schema:
+          type: string
+          minLength: 1
+      - description: Tag ID
+        in: path
+        name: tagId
+        required: true
+        schema:
+          format: uuid
+          type: string
+      - in: path
+        name: slot
+        required: true
+        schema:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+      - description: 相同请求回放原响应；不同请求内容返回 IDEMPOTENCY_CONFLICT。最大 128 个字符。
+        in: header
+        name: Idempotency-Key
+        required: true
+        schema:
+          type: string
+          minLength: 0
+          maxLength: 128
+      requestBody:
+        content:
+          application/json:
+            schema:
+              "$ref": "#/components/schemas/RefreshQuestion"
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseTagView"
+          description: 问题已刷新
+        '400':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: slot、版本或请求参数无效，或缺少 Idempotency-Key
+        '401':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 未登录或会话已失效
+        '403':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: CSRF 令牌无效或无权访问
+        '409':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: 问题尚未生成、刷新次数耗尽、版本冲突或幂等冲突
+        '503':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+          description: AI 或社交存储暂不可用
+      security:
+      - webSession: []
+      summary: 刷新一道问题
+      tags:
+      - 社交
+      x-tago: &55
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: contract-owner
+        knownGaps:
+        - 尚无与本次发布提交对应的受控 Dev 请求证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: true
+          idempotencyKey: required
+  "/api/v1/wallet":
+    get:
+      operationId: walletBalance
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseWalletBalance"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 钱包存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取钱包余额
+      tags:
+      - 钱包
+      security:
+      - webSession: []
+      x-tago: &56
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: business-commerce
+        knownGaps:
+        - 余额、预留和恢复屏障由业务工作包验收，尚无受控 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：余额、预留和恢复屏障由业务工作包验收，尚无受控 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+  "/api/v1/wallet/entries":
+    get:
+      operationId: walletEntries
+      parameters:
+      - in: query
+        name: beforeSequence
+        required: false
+        schema:
+          default: 0
+          format: int64
+          type: integer
+      - in: query
+        name: limit
+        required: false
+        schema:
+          default: 20
+          format: int32
+          type: integer
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/SingleResponseListWalletEntry"
+          description: OK
+        '401':
+          description: 未登录或会话已失效
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+        '503':
+          description: 钱包存储暂不可用
+          content:
+            application/json:
+              schema:
+                "$ref": "#/components/schemas/Response"
+      summary: 读取钱包流水
+      tags:
+      - 钱包
+      security:
+      - webSession: []
+      x-tago: &57
+        contractStatus: FROZEN
+        implementationStatus: IMPLEMENTED_UNVERIFIED
+        owner: business-commerce
+        knownGaps:
+        - 流水顺序和分页边界由业务工作包验收，尚无受控 Dev 证据。
+        validation: 已完成本地规范与实例校验；真实 Dev 请求尚未核验
+        requestPolicy:
+          authentication: webSession
+          csrfRequired: false
+          idempotencyKey: not-used
+      description: 契约状态：FROZEN；实现状态：IMPLEMENTED_UNVERIFIED。 认证：需要 webSession Cookie。
+        已知限制：流水顺序和分页边界由业务工作包验收，尚无受控 Dev 证据。 验证：已完成本地规范与实例校验；真实 Dev 请求尚未核验
+components:
+  schemas:
+    AcceptanceView:
+      description: 申请接受后的连接结果
+      properties:
+        applicationId:
+          format: uuid
+          type: string
+        conversationId:
+          format: uuid
+          type: string
+        encounterId:
+          format: uuid
+          type: string
+      required:
+      - applicationId
+      - conversationId
+      - encounterId
+      type: object
+    Answer:
+      description: 申请者对一个问题的回答
+      properties:
+        questionVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        slot:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+        text:
+          maxLength: 2000
+          minLength: 1
+          type: string
+      required:
+      - questionVersion
+      - slot
+      - text
+      type: object
+    AnswerView:
+      description: 申请快照中的答案
+      properties:
+        party:
+          enum:
+          - PUBLISHER
+          - APPLICANT
+          type: string
+        slot:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+        text:
+          maxLength: 2000
+          minLength: 1
+          type: string
+      required:
+      - party
+      - slot
+      - text
+      type: object
+    ApplicationPage:
+      type: object
+      required:
+      - items
+      - nextCursor
+      - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ApplicationView"
+        nextCursor:
+          oneOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        hasMore:
+          type: boolean
+    ApplicationView:
+      description: 认识申请及提交时的不可变快照
+      properties:
+        acceptsUntil:
+          format: date-time
+          type: string
+        applicantAnswers:
+          items:
+            "$ref": "#/components/schemas/AnswerView"
+          type: array
+          minItems: 3
+          maxItems: 3
+        applicantId:
+          format: uuid
+          type: string
+        applicantIdentity:
+          "$ref": "#/components/schemas/PublicIdentityView"
+        conversationId:
+          oneOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        encounterId:
+          oneOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        publisherAnswers:
+          items:
+            "$ref": "#/components/schemas/AnswerView"
+          type: array
+          minItems: 3
+          maxItems: 3
+        publisherId:
+          format: uuid
+          type: string
+        publisherIdentity:
+          "$ref": "#/components/schemas/PublicIdentityView"
+        questions:
+          items:
+            "$ref": "#/components/schemas/QuestionSnapshotView"
+          type: array
+          minItems: 3
+          maxItems: 3
+        state:
+          enum:
+          - PENDING
+          - ACCEPTED
+          - REJECTED
+          - EXPIRED
+          type: string
+        submittedAt:
+          format: date-time
+          type: string
+        tag:
+          "$ref": "#/components/schemas/TagSnapshotView"
+        tagId:
+          format: uuid
+          type: string
+      required:
+      - acceptsUntil
+      - applicantAnswers
+      - applicantId
+      - applicantIdentity
+      - conversationId
+      - encounterId
+      - id
+      - publisherAnswers
+      - publisherId
+      - publisherIdentity
+      - questions
+      - state
+      - submittedAt
+      - tag
+      - tagId
+      type: object
+    Avatar:
+      properties:
+        id:
+          type: string
+        url:
+          oneOf:
+          - description: 可选资源提示；客户端也可以仅使用 avatarId 映射自己的 CDN/OSS 资源
+            type: string
+          - type: 'null'
+      required:
+      - id
+      type: object
+    ChangePasswordInput:
+      description: 修改密码请求参数
+      properties:
+        newPassword:
+          description: 新密码；业务有效长度为 8–128 个 Unicode 码点
+          format: password
+          maxLength: 256
+          minLength: 8
+          type: string
+        oldPassword:
+          description: 当前密码；业务有效长度为 8–128 个 Unicode 码点
+          format: password
+          maxLength: 256
+          minLength: 8
+          type: string
+      required:
+      - newPassword
+      - oldPassword
+      type: object
+    ChatConnection:
+      description: 浏览器连接聊天引擎所需的引导信息
+      properties:
+        apiKey:
+          description: 聊天引擎公共 API key
+          minLength: 1
+          type: string
+        authenticationScheme:
+          description: 客户端使用的认证方式
+          enum:
+          - tago
+          type: string
+        endpoint:
+          description: 聊天引擎的公共连接地址
+          format: uri
+          type: string
+        ticket:
+          description: 短期一次性连接凭证
+          format: password
+          minLength: 1
+          type: string
+        ticketExpiresAt:
+          description: 连接凭证到期时间
+          format: date-time
+          type: string
+      required:
+      - apiKey
+      - authenticationScheme
+      - endpoint
+      - ticket
+      - ticketExpiresAt
+      type: object
+    ChatConversationConnection:
+      description: 永久会话的聊天引擎连接句柄
+      properties:
+        conversationId:
+          format: uuid
+          type: string
+        topicHandle:
+          description: 当前用户看到的 P2P topic 句柄
+          type: string
+      required:
+      - conversationId
+      - topicHandle
+      type: object
+    CodeRequest:
+      description: 邮箱验证码申请结果
+      properties:
+        challengeId:
+          description: 验证码挑战 ID
+          format: uuid
+          type: string
+        expiresInSeconds:
+          description: 验证码有效期，单位为秒
+          format: int64
+          minimum: 1
+          type: integer
+        retryAfterSeconds:
+          description: 再次申请前需要等待的时间，单位为秒
+          format: int64
+          minimum: 1
+          type: integer
+      required:
+      - challengeId
+      - expiresInSeconds
+      - retryAfterSeconds
+      type: object
+    ConversationDetailView:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        encounterCount:
+          format: int64
+          type: integer
+        firstEncounter:
+          oneOf:
+          - "$ref": "#/components/schemas/EncounterView"
+          - type: 'null'
+        firstEncounterId:
+          oneOf:
+          - type: string
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        latestEncounter:
+          oneOf:
+          - "$ref": "#/components/schemas/EncounterView"
+          - type: 'null'
+        latestEncounterId:
+          oneOf:
+          - type: string
+          - type: 'null'
+        peerId:
+          format: uuid
+          type: string
+        peerIdentity:
+          oneOf:
+          - "$ref": "#/components/schemas/PublicIdentityView"
+          - type: 'null'
+      required:
+      - createdAt
+      - encounterCount
+      - firstEncounter
+      - firstEncounterId
+      - id
+      - latestEncounter
+      - latestEncounterId
+      - peerId
+      - peerIdentity
+      type: object
+    ConversationPage:
+      type: object
+      required:
+      - items
+      - nextCursor
+      - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ConversationView"
+        nextCursor:
+          oneOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        hasMore:
+          type: boolean
+    ConversationView:
+      properties:
+        createdAt:
+          format: date-time
+          type: string
+        id:
+          format: uuid
+          type: string
+        peerId:
+          format: uuid
+          type: string
+        peerIdentity:
+          oneOf:
+          - "$ref": "#/components/schemas/PublicIdentityView"
+          - type: 'null'
+        peerTinodeUserId:
+          oneOf:
+          - description: 已存在的 Tinode peer 映射
+            type: string
+          - type: 'null'
+      required:
+      - createdAt
+      - id
+      - peerId
+      - peerIdentity
+      - peerTinodeUserId
+      type: object
+    CreateTag:
+      description: 创建 Tag 请求
+      properties:
+        body:
+          description: 公开 Tag 正文；长度按 Unicode code points 校验
+          maxLength: 2000
+          minLength: 1
+          type: string
+        duration:
+          description: Tag 有效时长
+          enum:
+          - DAY
+          - WEEK
+          - MONTH
+          - LONG_TERM
+          minLength: 1
+          type: string
+        encounterMode:
+          description: 相遇方式
+          enum:
+          - ONLINE
+          - OFFLINE
+          - BOTH
+          minLength: 1
+          type: string
+      required:
+      - body
+      - duration
+      - encounterMode
+      type: object
+    CsrfView:
+      description: CSRF 令牌响应
+      properties:
+        headerName:
+          description: 客户端提交令牌时使用的请求头名称
+          minLength: 1
+          type: string
+        token:
+          description: CSRF 令牌值
+          format: password
+          minLength: 1
+          type: string
+      required:
+      - headerName
+      - token
+      type: object
+    CustomizeQuestion:
+      description: 手工编辑问题请求
+      properties:
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        text:
+          maxLength: 400
+          minLength: 1
+          type: string
+      required:
+      - expectedVersion
+      - text
+      type: object
+    DiscoveryView:
+      description: 发现推荐结果
+      properties:
+        degraded:
+          type: boolean
+        generatedAt:
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        items:
+          items:
+            "$ref": "#/components/schemas/RecommendationView"
+          type: array
+        mode:
+          enum:
+          - NATURAL
+          - PERSONALIZED
+          type: string
+        reason:
+          type: string
+        refreshAfter:
+          oneOf:
+          - description: 允许下一次刷新时间
+            format: date-time
+            type: string
+          - type: 'null'
+        refreshRecommended:
+          description: 是否建议显式触发推荐刷新
+          type: boolean
+        source:
+          type: string
+          enum:
+          - MODEL
+          - VECTOR
+          - RECENT
+          - CACHE
+      required:
+      - mode
+      - reason
+      - items
+      - refreshRecommended
+      - refreshAfter
+      - source
+      - degraded
+      - generatedAt
+      type: object
+    EditBody:
+      description: 修改 Draft 正文请求
+      properties:
+        body:
+          description: 新的公开 Tag 正文；长度按 Unicode code points 校验
+          maxLength: 2000
+          minLength: 1
+          type: string
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - body
+      - expectedVersion
+      type: object
+    EmailInput:
+      description: 邮箱请求参数
+      properties:
+        email:
+          description: 邮箱地址；去首尾空白并规范化后长度为 6–254 个字符
+          example: user@example.com
+          format: email
+          maxLength: 320
+          minLength: 6
+          type: string
+      required:
+      - email
+      type: object
+    EmbeddingView:
+      description: 公开 Tag embedding 状态
+      properties:
+        model:
+          type: string
+        profile:
+          enum:
+          - REAL
+          - MOCK
+          type: string
+        state:
+          enum:
+          - PENDING
+          - PROCESSING
+          - READY
+          - FAILED
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+      required:
+      - model
+      - profile
+      - state
+      - updatedAt
+      type: object
+    EncounterDetailView:
+      type: object
+      required:
+      - id
+      - conversationId
+      - acceptedAt
+      - application
+      properties:
+        id:
+          type: string
+          format: uuid
+        conversationId:
+          type: string
+          format: uuid
+        acceptedAt:
+          type: string
+          format: date-time
+        application:
+          "$ref": "#/components/schemas/ApplicationView"
+    EncounterPage:
+      type: object
+      required:
+      - items
+      - nextCursor
+      - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/EncounterView"
+        nextCursor:
+          oneOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        hasMore:
+          type: boolean
+    EncounterView:
+      type: object
+      required:
+      - id
+      - tagId
+      - summary
+      - truncated
+      - acceptedAt
+      properties:
+        id:
+          type: string
+          format: uuid
+        tagId:
+          type: string
+          format: uuid
+        summary:
+          oneOf:
+          - type: string
+            minLength: 1
+            maxLength: 80
+          - type: 'null'
+        truncated:
+          type: boolean
+        acceptedAt:
+          type: string
+          format: date-time
+    ExpectedVersion:
+      description: 带版本号的命令请求
+      properties:
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - expectedVersion
+      type: object
+    ExposureBid:
+      type: object
+      required:
+      - bidId
+      - tagId
+      - entitlementId
+      - status
+      - failureCode
+      - offeredCoin
+      - paidCoin
+      - createdAt
+      - acceptedAt
+      - expiresAt
+      - entitlementState
+      - endedAt
+      - endReason
+      properties:
+        bidId: &1
+          type: string
+          format: uuid
+        tagId: &2
+          type: string
+          format: uuid
+        entitlementId: &5
+          oneOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        status: &6
+          type: string
+          enum:
+          - ACCEPTED
+          - REJECTED
+        failureCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        offeredCoin: &3
+          type: string
+          pattern: "^[0-9]+$"
+        paidCoin: &7
+          type: string
+          pattern: "^[0-9]+$"
+        createdAt: &4
+          type: string
+          format: date-time
+        acceptedAt: &8
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        expiresAt: &9
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        entitlementState:
+          oneOf:
+          - type: string
+            enum:
+            - TOP
+            - CAROUSEL
+            - ENDED
+          - type: 'null'
+        endedAt:
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        endReason:
+          oneOf:
+          - type: string
+          - type: 'null'
+    ExposureBidInput:
+      properties:
+        offeredCoin:
+          maxLength: 20
+          minLength: 0
+          type: string
+        tagId:
+          minLength: 1
+          type: string
+        tagVersion:
+          format: int64
+          type: integer
+      required:
+      - offeredCoin
+      - tagId
+      - tagVersion
+      type: object
+    ExposureBidPage:
+      type: object
+      required:
+      - items
+      - nextCursor
+      - hasMore
+      properties:
+        items:
+          type: array
+          items:
+            "$ref": "#/components/schemas/ExposureBid"
+        nextCursor:
+          oneOf:
+          - type: string
+            minLength: 1
+          - type: 'null'
+        hasMore:
+          type: boolean
+    ExposureBidResult:
+      type: object
+      required:
+      - bidId
+      - tagId
+      - offeredCoin
+      - createdAt
+      - entitlementId
+      - status
+      - paidCoin
+      - acceptedAt
+      - expiresAt
+      properties:
+        bidId: *1
+        tagId: *2
+        offeredCoin: *3
+        createdAt: *4
+        entitlementId: *5
+        status: *6
+        paidCoin: *7
+        acceptedAt: *8
+        expiresAt: *9
+    ExposureCarouselItem:
+      properties:
+        acceptedAt:
+          format: date-time
+          type: string
+        entitlementId:
+          type: string
+        expiresAt:
+          format: date-time
+          type: string
+        paidCoin:
+          type: string
+        tagId:
+          type: string
+        userId:
+          type: string
+      type: object
+    ExposureCarouselPage:
+      properties:
+        hasMore:
+          type: boolean
+        items:
+          items:
+            "$ref": "#/components/schemas/ExposureCarouselItem"
+          type: array
+        nextCursor:
+          type: string
+      type: object
+    ExposureCurrent:
+      type: object
+      required:
+      - entitlementId
+      - tagId
+      - paidCoin
+      - expiresAt
+      - serverTime
+      - minimumBid
+      properties:
+        entitlementId:
+          oneOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        tagId:
+          oneOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+        paidCoin:
+          type: string
+          pattern: "^[0-9]+$"
+        expiresAt:
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        serverTime:
+          type: string
+          format: date-time
+        minimumBid:
+          type: string
+          pattern: "^[0-9]+$"
+        entitlementState:
+          oneOf:
+          - type: string
+            enum:
+            - TOP
+            - CAROUSEL
+            - ENDED
+          - type: 'null'
+    ExposureRules:
+      properties:
+        entitlementSeconds:
+          type: integer
+          minimum: 1
+        minimumIncrement:
+          type: string
+          pattern: "^[0-9]+$"
+        openingBid:
+          type: string
+          pattern: "^[0-9]+$"
+      type: object
+      required:
+      - openingBid
+      - minimumIncrement
+      - entitlementSeconds
+    LoginInput:
+      description: 登录请求参数
+      properties:
+        email:
+          description: 邮箱地址；去首尾空白并规范化后长度为 6–254 个字符
+          example: user@example.com
+          format: email
+          maxLength: 320
+          minLength: 6
+          type: string
+        password:
+          description: 登录密码；业务有效长度为 8–128 个 Unicode 码点
+          format: password
+          maxLength: 256
+          minLength: 8
+          type: string
+      required:
+      - email
+      - password
+      type: object
+    LogoutView:
+      description: 退出结果
+      properties:
+        httpRevoked:
+          type: boolean
+        imState:
+          enum:
+          - DISABLED
+          - CLEARED
+          - RECOVERY_PENDING
+          type: string
+      required:
+      - httpRevoked
+      - imState
+      type: object
+    PasswordChangeView:
+      description: 密码修改结果
+      properties:
+        imState:
+          enum:
+          - DISABLED
+          - CLEARED
+          - RECOVERY_PENDING
+          type: string
+        passwordChanged:
+          type: boolean
+      required:
+      - imState
+      - passwordChanged
+      type: object
+    PublicIdentityUpdate:
+      properties:
+        avatarId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        displayName:
+          maxLength: 32
+          minLength: 1
+          type: string
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - avatarId
+      - displayName
+      - expectedVersion
+      type: object
+    PublicIdentityView:
+      type: object
+      required:
+      - publicId
+      - displayName
+      - avatarId
+      - version
+      - updatedAt
+      properties:
+        publicId:
+          type: string
+          minLength: 2
+          maxLength: 32
+        displayName:
+          type: string
+          minLength: 1
+          maxLength: 32
+        avatarId:
+          type: string
+          minLength: 1
+          maxLength: 64
+        version:
+          type: integer
+          minimum: 0
+        updatedAt:
+          type: string
+          format: date-time
+    PublisherAnswer:
+      description: 发布者回答请求
+      properties:
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        questionVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        text:
+          maxLength: 2000
+          minLength: 1
+          type: string
+      required:
+      - expectedVersion
+      - questionVersion
+      - text
+      type: object
+    PublisherAnswerView:
+      description: 发布者对当前问题版本的答案
+      properties:
+        questionVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        slot:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+        text:
+          maxLength: 2000
+          minLength: 1
+          type: string
+      required:
+      - questionVersion
+      - slot
+      - text
+      type: object
+    QuestionSnapshotView:
+      description: 申请提交时的问题快照
+      properties:
+        questionVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        slot:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+        text:
+          maxLength: 400
+          minLength: 1
+          type: string
+      required:
+      - questionVersion
+      - slot
+      - text
+      type: object
+    QuestionView:
+      description: Tag 的一个固定问题槽位
+      properties:
+        customizationUnlocked:
+          type: boolean
+        generated:
+          type: boolean
+        questionVersion:
+          format: int64
+          minimum: 0
+          type: integer
+        refreshCount:
+          format: int32
+          maximum: 5
+          minimum: 0
+          type: integer
+        slot:
+          format: int32
+          maximum: 3
+          minimum: 1
+          type: integer
+        text:
+          oneOf:
+          - maxLength: 400
+            minLength: 1
+            type: string
+          - type: 'null'
+      required:
+      - customizationUnlocked
+      - generated
+      - questionVersion
+      - refreshCount
+      - slot
+      - text
+      type: object
+    RecommendationView:
+      description: 公开 Tag 推荐
+      properties:
+        body:
+          maxLength: 2000
+          minLength: 1
+          type: string
+        evidenceRefs:
+          items:
+            type: string
+          type: array
+        mode:
+          enum:
+          - NATURAL
+          - PERSONALIZED
+          type: string
+        ownerId:
+          format: uuid
+          type: string
+        ownerIdentity:
+          oneOf:
+          - "$ref": "#/components/schemas/PublicIdentityView"
+          - type: 'null'
+        questions:
+          items:
+            type: string
+          type: array
+        reason:
+          minLength: 1
+          type: string
+        score:
+          format: double
+          maximum: 1
+          minimum: 0
+          type: number
+        tagId:
+          format: uuid
+          type: string
+      required:
+      - body
+      - evidenceRefs
+      - mode
+      - ownerId
+      - ownerIdentity
+      - questions
+      - reason
+      - score
+      - tagId
+      type: object
+    RecoveryInput:
+      description: 登录容量恢复请求
+      properties:
+        confirm:
+          type: boolean
+        email:
+          maxLength: 320
+          minLength: 6
+          type: string
+        password:
+          maxLength: 256
+          minLength: 8
+          type: string
+        recoveryRequestId:
+          maxLength: 128
+          minLength: 1
+          type: string
+      required:
+      - confirm
+      - email
+      - password
+      - recoveryRequestId
+      type: object
+    RefreshQuestion:
+      description: 刷新问题请求
+      properties:
+        expectedVersion:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - expectedVersion
+      type: object
+    RegistrationView:
+      description: 注册结果
+      properties:
+        authenticated:
+          description: 注册后是否已建立网页会话
+          type: boolean
+        nextAction:
+          description: 客户端下一步动作
+          enum:
+          - NONE
+          - LOGIN
+          type: string
+        userId:
+          description: 新建账号 ID
+          format: uuid
+          type: string
+      required:
+      - authenticated
+      - nextAction
+      - userId
+      type: object
+    ResolveInput:
+      properties:
+        peerHandles:
+          items:
+            maxLength: 128
+            minLength: 0
+            type: string
+          maxItems: 100
+          minItems: 1
+          type: array
+      required:
+      - peerHandles
+      type: object
+    Response:
+      type: object
+      required:
+      - success
+      properties:
+        success:
+          type: boolean
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+    SessionView:
+      description: 当前网页会话状态
+      properties:
+        authenticated:
+          description: 当前是否已认证
+          type: boolean
+        email:
+          oneOf:
+          - description: 当前账号邮箱；规范化后长度为 6–254 个字符
+            format: email
+            type: string
+          - type: 'null'
+        expiresAt:
+          oneOf:
+          - description: 会话到期时间
+            format: date-time
+            type: string
+          - type: 'null'
+        imState:
+          description: 服务端 IM 接入状态
+          enum:
+          - DISABLED
+          - ACCESS_ALLOWED
+          - RECOVERY_PENDING
+          - UNAVAILABLE
+          type: string
+        loginId:
+          oneOf:
+          - description: 当前登录标识
+            type: string
+          - type: 'null'
+        userId:
+          oneOf:
+          - description: 当前账号 ID
+            format: uuid
+            type: string
+          - type: 'null'
+      required:
+      - authenticated
+      - email
+      - expiresAt
+      - userId
+      type: object
+    SingleResponseAcceptanceView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/AcceptanceView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseApplicationPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ApplicationPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseApplicationView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ApplicationView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseChatConnection:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ChatConnection"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseChatConversationConnection:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ChatConversationConnection"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseCodeRequest:
+      properties:
+        data:
+          "$ref": "#/components/schemas/CodeRequest"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseConversationDetailView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ConversationDetailView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseConversationPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ConversationPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseCsrfView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/CsrfView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseDiscoveryView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/DiscoveryView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseEncounterDetailView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/EncounterDetailView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseEncounterPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/EncounterPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureBid:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureBid"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureBidPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureBidPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureBidResult:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureBidResult"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureCarouselPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureCarouselPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureCurrent:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureCurrent"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseExposureRules:
+      properties:
+        data:
+          "$ref": "#/components/schemas/ExposureRules"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseListAvatar:
+      properties:
+        data:
+          items:
+            "$ref": "#/components/schemas/Avatar"
+          type: array
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseListConversationView:
+      properties:
+        data:
+          items:
+            "$ref": "#/components/schemas/ConversationView"
+          type: array
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseListWalletEntry:
+      properties:
+        data:
+          items:
+            "$ref": "#/components/schemas/WalletEntry"
+          type: array
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseLogoutView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/LogoutView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponsePasswordChangeView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/PasswordChangeView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseRegistrationView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/RegistrationView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseSessionView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/SessionView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseTagHistoryDetail:
+      properties:
+        data:
+          "$ref": "#/components/schemas/TagHistoryDetail"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseTagHistoryPage:
+      properties:
+        data:
+          "$ref": "#/components/schemas/TagHistoryPage"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseTagMineView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/TagMineView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseTagView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/TagView"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseView:
+      properties:
+        data:
+          "$ref": "#/components/schemas/View"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SingleResponseWalletBalance:
+      properties:
+        data:
+          "$ref": "#/components/schemas/WalletBalance"
+        errCode:
+          oneOf:
+          - type: string
+          - type: 'null'
+        errMessage:
+          oneOf:
+          - type: string
+          - type: 'null'
+        success:
+          type: boolean
+      type: object
+      required:
+      - success
+      - data
+    SubmitApplication:
+      description: 提交认识申请请求
+      properties:
+        answers:
+          description: 必须按三个问题槽位各回答一次
+          items:
+            "$ref": "#/components/schemas/Answer"
+          maxItems: 3
+          minItems: 3
+          type: array
+      required:
+      - answers
+      type: object
+    TagHistoryDetail:
+      description: 当前用户历史 Tag 的只读详情
+      properties:
+        body:
+          maxLength: 2000
+          minLength: 1
+          type: string
+        createdAt:
+          format: date-time
+          type: string
+        duration:
+          enum:
+          - DAY
+          - WEEK
+          - MONTH
+          - LONG_TERM
+          type: string
+        encounterMode:
+          enum:
+          - ONLINE
+          - OFFLINE
+          - BOTH
+          type: string
+        expiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        inactiveAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        naturalExpiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        ownerId:
+          format: uuid
+          type: string
+        ownerIdentity:
+          "$ref": "#/components/schemas/PublicIdentityView"
+        publishedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        publisherAnswers:
+          items:
+            "$ref": "#/components/schemas/PublisherAnswerView"
+          type: array
+        questions:
+          items:
+            "$ref": "#/components/schemas/QuestionView"
+          type: array
+        state:
+          enum:
+          - CLOSED
+          - REPLACED
+          - EXPIRED
+          type: string
+        version:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - body
+      - createdAt
+      - duration
+      - encounterMode
+      - expiresAt
+      - id
+      - inactiveAt
+      - naturalExpiresAt
+      - ownerId
+      - ownerIdentity
+      - publishedAt
+      - publisherAnswers
+      - questions
+      - state
+      - version
+      type: object
+    TagHistoryItem:
+      description: 当前用户已经结束的历史 Tag 条目
+      properties:
+        body:
+          maxLength: 2000
+          minLength: 1
+          type: string
+        duration:
+          enum:
+          - DAY
+          - WEEK
+          - MONTH
+          - LONG_TERM
+          type: string
+        encounterMode:
+          enum:
+          - ONLINE
+          - OFFLINE
+          - BOTH
+          type: string
+        expiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        inactiveAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        naturalExpiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        publishedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        state:
+          enum:
+          - CLOSED
+          - REPLACED
+          - EXPIRED
+          type: string
+        version:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - body
+      - duration
+      - encounterMode
+      - expiresAt
+      - id
+      - inactiveAt
+      - naturalExpiresAt
+      - publishedAt
+      - state
+      - version
+      type: object
+    TagHistoryPage:
+      properties:
+        hasMore:
+          type: boolean
+        items:
+          items:
+            "$ref": "#/components/schemas/TagHistoryItem"
+          type: array
+        nextCursor:
+          oneOf:
+          - type: string
+          - type: 'null'
+      required:
+      - hasMore
+      - items
+      - nextCursor
+      type: object
+    TagMineView:
+      description: 当前用户的草稿与有效 Tag
+      properties:
+        active:
+          oneOf:
+          - "$ref": "#/components/schemas/TagView"
+          - type: 'null'
+        draft:
+          oneOf:
+          - "$ref": "#/components/schemas/TagView"
+          - type: 'null'
+      required:
+      - active
+      - draft
+      type: object
+    TagSnapshotView:
+      description: 申请提交时的 Tag 快照
+      properties:
+        body:
+          maxLength: 2000
+          minLength: 1
+          type: string
+        duration:
+          enum:
+          - DAY
+          - WEEK
+          - MONTH
+          - LONG_TERM
+          type: string
+        encounterMode:
+          enum:
+          - ONLINE
+          - OFFLINE
+          - BOTH
+          type: string
+        expiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        publishedAt:
+          format: date-time
+          type: string
+        publisherId:
+          format: uuid
+          type: string
+        tagId:
+          format: uuid
+          type: string
+      required:
+      - body
+      - duration
+      - encounterMode
+      - publishedAt
+      - publisherId
+      - tagId
+      type: object
+    TagView:
+      description: Tag 当前状态视图
+      properties:
+        body:
+          maxLength: 2000
+          minLength: 1
+          type: string
+        duration:
+          enum:
+          - DAY
+          - WEEK
+          - MONTH
+          - LONG_TERM
+          type: string
+        embedding:
+          oneOf:
+          - "$ref": "#/components/schemas/EmbeddingView"
+          - type: 'null'
+        encounterMode:
+          enum:
+          - ONLINE
+          - OFFLINE
+          - BOTH
+          type: string
+        expiresAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        id:
+          format: uuid
+          type: string
+        naturalExpiresAt:
+          oneOf:
+          - type: string
+            format: date-time
+          - type: 'null'
+        ownerId:
+          format: uuid
+          type: string
+        ownerIdentity:
+          "$ref": "#/components/schemas/PublicIdentityView"
+        publishedAt:
+          oneOf:
+          - format: date-time
+            type: string
+          - type: 'null'
+        publisherAnswers:
+          items:
+            "$ref": "#/components/schemas/PublisherAnswerView"
+          type: array
+          minItems: 0
+          maxItems: 3
+          description: Draft 可为空；PUBLISHED 必须包含 slot 1–3 的完整版本化内容。
+        questions:
+          items:
+            "$ref": "#/components/schemas/QuestionView"
+          type: array
+          minItems: 0
+          maxItems: 3
+          description: Draft 可为空；PUBLISHED 必须包含 slot 1–3 的完整版本化内容。
+        state:
+          enum:
+          - DRAFT
+          - PUBLISHED
+          - CLOSED
+          - REPLACED
+          - EXPIRED
+          type: string
+        version:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - body
+      - duration
+      - embedding
+      - encounterMode
+      - expiresAt
+      - id
+      - naturalExpiresAt
+      - ownerId
+      - ownerIdentity
+      - publishedAt
+      - publisherAnswers
+      - questions
+      - state
+      - version
+      type: object
+    VerificationInput:
+      description: 邮箱验证码校验请求参数
+      properties:
+        challengeId:
+          description: 验证码挑战 ID
+          format: uuid
+          maxLength: 36
+          minLength: 36
+          type: string
+        code:
+          description: 邮箱收到的验证码
+          example: '123456'
+          maxLength: 6
+          minLength: 6
+          pattern: "^[0-9]{6}$"
+          type: string
+        email:
+          description: 邮箱地址；去首尾空白并规范化后长度为 6–254 个字符
+          example: user@example.com
+          format: email
+          maxLength: 320
+          minLength: 6
+          type: string
+        password:
+          description: 新密码；业务有效长度为 8–128 个 Unicode 码点
+          format: password
+          maxLength: 256
+          minLength: 8
+          type: string
+      required:
+      - challengeId
+      - code
+      - email
+      - password
+      type: object
+    View:
+      properties:
+        avatarId:
+          maxLength: 64
+          minLength: 1
+          type: string
+        displayName:
+          maxLength: 32
+          minLength: 1
+          type: string
+        publicId:
+          type: string
+        updatedAt:
+          format: date-time
+          type: string
+        version:
+          format: int64
+          minimum: 0
+          type: integer
+      required:
+      - avatarId
+      - displayName
+      - publicId
+      - updatedAt
+      - version
+      type: object
+    WalletBalance:
+      properties:
+        available:
+          type: string
+          pattern: "^[0-9]+$"
+        balance:
+          type: string
+          pattern: "^[0-9]+$"
+        recoveryOutstanding:
+          type: boolean
+        reserved:
+          type: string
+          pattern: "^[0-9]+$"
+      type: object
+      required:
+      - balance
+      - reserved
+      - available
+      - recoveryOutstanding
+    WalletEntry:
+      properties:
+        balanceAfter:
+          type: string
+          pattern: "^[0-9]+$"
+        createdAt:
+          format: date-time
+          type: string
+        delta:
+          type: string
+          pattern: "^-?[0-9]+$"
+        sequence:
+          format: int64
+          type: integer
+        sourceId:
+          type: string
+        sourceType:
+          type: string
+      type: object
+      required:
+      - sequence
+      - sourceType
+      - sourceId
+      - delta
+      - balanceAfter
+      - createdAt
+  securitySchemes:
+    webSession:
+      description: 开发环境网页登录 Cookie；生产使用 __Host-TAGO_PROD_V2，生产默认不开放 OpenAPI。
+      in: cookie
+      name: TAGO_DEV_V2
+      type: apiKey
+x-tago-contract:
+  version: 1.0.0-rc.3
+  status: FROZEN
+  sourceCommit: 2fab1bb90ab3c57c6c42be1e066c1b71494750ca
+  deploymentStatus: UNVERIFIED
+  deploymentSha:
+  runtimeSnapshot: contracts/openapi.yaml
+  generatedBy: scripts/freeze-openapi.rb
+  reviewPath: contracts/operation-review.json
+  errorCatalog: contracts/errors.json
+  publishedBaseline: contracts/released/openapi-mvp.yaml
+  stateDimensions:
+    contract:
+    - DRAFT
+    - FROZEN
+    implementation:
+    - MOCK_ONLY
+    - IMPLEMENTED_WITH_GAPS
+    - IMPLEMENTED_UNVERIFIED
+    - DEV_VERIFIED
+x-tago-operations:
+  PUT /api/v1/account/password: *10
+  GET /api/v1/account/profile: *11
+  PUT /api/v1/account/profile: *12
+  GET /api/v1/applications: *13
+  GET /api/v1/applications/{applicationId}: *14
+  POST /api/v1/applications/{applicationId}/accept: *15
+  POST /api/v1/applications/{applicationId}/reject: *16
+  GET /api/v1/auth/csrf: *17
+  POST /api/v1/auth/login: *18
+  POST /api/v1/auth/login/recover: *19
+  POST /api/v1/auth/logout: *20
+  POST /api/v1/auth/logout-all: *21
+  POST /api/v1/auth/password-reset: *22
+  POST /api/v1/auth/password-reset-codes: *23
+  POST /api/v1/auth/register: *24
+  POST /api/v1/auth/registration-codes: *25
+  GET /api/v1/auth/session: *26
+  GET /api/v1/avatars: *27
+  GET /api/v1/chats: *28
+  POST /api/v1/chats/connection: *29
+  POST /api/v1/chats/resolve: *30
+  GET /api/v1/chats/{conversationId}: *31
+  POST /api/v1/chats/{conversationId}/connection: *32
+  GET /api/v1/chats/{conversationId}/encounters: *33
+  GET /api/v1/chats/{conversationId}/encounters/{encounterId}: *34
+  GET /api/v1/discovery: *35
+  POST /api/v1/discovery/refresh: *36
+  GET /api/v1/exposure: *37
+  GET /api/v1/exposure/bids: *38
+  POST /api/v1/exposure/bids: *39
+  GET /api/v1/exposure/bids/{bidId}: *40
+  GET /api/v1/exposure/carousel: *41
+  GET /api/v1/exposure/rules: *42
+  POST /api/v1/tags: *43
+  GET /api/v1/tags/history: *44
+  GET /api/v1/tags/history/detail/{tagId}: *45
+  GET /api/v1/tags/mine: *46
+  GET /api/v1/tags/{tagId}: *47
+  PUT /api/v1/tags/{tagId}: *48
+  PUT /api/v1/tags/{tagId}/answers/{slot}: *49
+  POST /api/v1/tags/{tagId}/applications: *50
+  POST /api/v1/tags/{tagId}/close: *51
+  POST /api/v1/tags/{tagId}/publish: *52
+  POST /api/v1/tags/{tagId}/questions/generate: *53
+  PUT /api/v1/tags/{tagId}/questions/{slot}: *54
+  POST /api/v1/tags/{tagId}/questions/{slot}/refresh: *55
+  GET /api/v1/wallet: *56
+  GET /api/v1/wallet/entries: *57

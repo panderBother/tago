@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 360" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="base" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff8d8"/>
+      <stop offset="0.46" stop-color="#fff4cc"/>
+      <stop offset="1" stop-color="#f7e6aa"/>
+    </linearGradient>
+    <radialGradient id="wash" cx="28%" cy="37%" r="62%">
+      <stop offset="0" stop-color="#fff" stop-opacity=".72"/>
+      <stop offset=".58" stop-color="#fff" stop-opacity=".14"/>
+      <stop offset="1" stop-color="#e6c866" stop-opacity=".13"/>
+    </radialGradient>
+    <filter id="rough" x="-4%" y="-8%" width="108%" height="116%">
+      <feTurbulence type="fractalNoise" baseFrequency=".008 .055" numOctaves="2" seed="17" result="noise"/>
+      <feDisplacementMap in="SourceGraphic" in2="noise" scale="7" xChannelSelector="R" yChannelSelector="B"/>
+    </filter>
+    <filter id="grain" x="-2%" y="-5%" width="104%" height="110%">
+      <feTurbulence type="fractalNoise" baseFrequency=".48" numOctaves="3" seed="8" result="n"/>
+      <feColorMatrix in="n" type="matrix" values=".65 0 0 0 .22  0 .56 0 0 .19  0 0 .28 0 .08  0 0 0 .20 0" result="colored"/>
+      <feBlend in="SourceGraphic" in2="colored" mode="multiply"/>
+    </filter>
+    <filter id="shadow" x="-5%" y="-10%" width="110%" height="125%">
+      <feDropShadow dx="0" dy="8" stdDeviation="9" flood-color="#665929" flood-opacity=".15"/>
+    </filter>
+  </defs>
+  <path d="M13 13 C75 5 126 13 190 8 C265 3 327 12 393 8 C483 3 555 13 638 7 C728 2 805 9 887 15 L891 48 C897 86 888 122 893 158 C899 202 887 244 893 281 L887 346 C813 351 750 345 676 350 C585 356 514 346 424 352 C333 357 250 347 174 352 C111 356 64 348 11 346 L7 301 C2 266 12 225 6 188 C1 145 13 105 7 67 Z" fill="#bfa34f" opacity=".12" filter="url(#shadow)"/>
+  <g filter="url(#rough)">
+    <path d="M13 11 C76 5 126 13 190 8 C264 3 328 12 393 8 C483 3 555 13 638 7 C728 2 805 9 887 14 L891 48 C897 86 888 122 893 158 C899 202 887 244 893 281 L887 345 C813 351 750 344 676 349 C585 355 514 346 424 351 C333 357 250 346 174 351 C111 356 64 347 11 345 L7 301 C2 266 12 225 6 188 C1 145 13 105 7 67 Z" fill="url(#base)"/>
+    <path d="M13 11 C76 5 126 13 190 8 C264 3 328 12 393 8 C483 3 555 13 638 7 C728 2 805 9 887 14 L891 48 C897 86 888 122 893 158 C899 202 887 244 893 281 L887 345 C813 351 750 344 676 349 C585 355 514 346 424 351 C333 357 250 346 174 351 C111 356 64 347 11 345 L7 301 C2 266 12 225 6 188 C1 145 13 105 7 67 Z" fill="url(#wash)" filter="url(#grain)" opacity=".72"/>
+  </g>
+  <path d="M31 42 C180 25 292 35 405 29" fill="none" stroke="#fff" stroke-width="17" stroke-linecap="round" opacity=".22"/>
+  <path d="M26 315 C178 329 294 317 442 325 C596 332 741 316 867 325" fill="none" stroke="#d6ba63" stroke-width="9" stroke-linecap="round" opacity=".09"/>
+</svg>

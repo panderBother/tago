@@ -1,0 +1,151 @@
+page {
+  min-height: 100%;
+  color: var(--tago-ink);
+  background:
+    radial-gradient(circle at 18% 12%, rgba(245,202,78,.055), transparent 30%),
+    radial-gradient(circle at 78% 45%, rgba(102,142,116,.035), transparent 27%),
+    radial-gradient(circle at 35% 82%, rgba(184,151,97,.035), transparent 31%),
+    var(--tago-paper);
+  background-size: auto;
+  font-family: "LXGW WenKai Screen", "PingFang SC", "Microsoft YaHei", sans-serif;
+  font-size: 28rpx;
+}
+
+view,
+text,
+button,
+input,
+textarea,
+scroll-view {
+  box-sizing: border-box;
+}
+
+button::after { border: 0; }
+
+/* 隐式滚动：内容可滚但不出滚动条 */
+::-webkit-scrollbar { width: 0 !important; height: 0 !important; display: none !important; }
+* { scrollbar-width: none !important; -ms-overflow-style: none !important; }
+
+.tago-page {
+  width: 100%;
+  max-width: var(--tago-content-width);
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0 28rpx calc(150rpx + env(safe-area-inset-bottom));
+}
+
+.tago-page--detail { padding-bottom: calc(56rpx + env(safe-area-inset-bottom)); }
+
+.tago-section-title {
+  display: flex;
+  align-items: center;
+  gap: 14rpx;
+  margin: 14rpx 6rpx 8rpx;
+  font-size: 29rpx;
+  font-weight: 800;
+  letter-spacing: 2rpx;
+}
+
+.tago-section-title::after {
+  content: '';
+  width: 7rpx;
+  height: 18rpx;
+  border-radius: 999rpx;
+  background: var(--tago-accent);
+  transform: rotate(-28deg);
+  box-shadow: 12rpx 7rpx 0 -1rpx var(--tago-accent), 19rpx 18rpx 0 -2rpx var(--tago-accent);
+  opacity: .8;
+}
+
+.tago-primary-button,
+.tago-outline-button {
+  min-height: 88rpx;
+  padding: 0 38rpx;
+  border-radius: var(--tago-radius-pill);
+  font-size: 30rpx;
+  line-height: 88rpx;
+}
+
+.tago-primary-button { color: white; background: var(--tago-primary); }
+.tago-outline-button { color: var(--tago-primary); border: 2rpx solid var(--tago-primary); background: transparent; }
+
+/* 桌面宽屏：把 H5 页面呈现为"桌布上的手账本"纸卡，避免窄条内容漂在大片空白里 */
+@media (min-width: 700px) {
+  page {
+    background:
+      radial-gradient(circle at 12% 18%, rgba(214,183,112,.16), transparent 34%),
+      radial-gradient(circle at 86% 72%, rgba(112,142,120,.12), transparent 38%),
+      radial-gradient(circle at 62% 8%, rgba(244,201,76,.10), transparent 26%),
+      linear-gradient(160deg, #e7dfc8 0%, #e3d9bf 46%, #ddd2b4 100%);
+    background-attachment: fixed;
+  }
+
+  /* 桌布上的手写坐标装饰 */
+  page::before {
+    content: '✦';
+    position: fixed;
+    left: 6vw;
+    top: 14vh;
+    color: rgba(32, 88, 79, .22);
+    font-size: 30px;
+    text-shadow: 42px 64px 0 rgba(244, 201, 76, .3), 120px 180px 0 rgba(32, 88, 79, .12), 190px 60px 0 rgba(184, 151, 97, .24);
+    pointer-events: none;
+  }
+
+  page::after {
+    content: '♡';
+    position: fixed;
+    right: 7vw;
+    bottom: 16vh;
+    color: rgba(32, 88, 79, .18);
+    font-size: 26px;
+    text-shadow: -60px -80px 0 rgba(233, 96, 82, .14), -150px 40px 0 rgba(32, 88, 79, .12);
+    pointer-events: none;
+  }
+
+  .tago-page {
+    max-width: 500px;
+    margin: 26px auto 40px;
+    min-height: calc(100vh - 66px);
+    background:
+      radial-gradient(circle at 20% 8%, rgba(249, 231, 173, .34), transparent 30%),
+      var(--tago-paper);
+    border-radius: 22px;
+    border: 1px solid rgba(255, 255, 255, .65);
+    box-shadow:
+      0 30px 70px rgba(57, 46, 26, .18),
+      0 6px 18px rgba(57, 46, 26, .10),
+      inset 0 0 0 6px rgba(255, 255, 255, .4);
+  }
+
+  /* 纸卡顶部的胶带装饰（收敛在纸卡内，避免压住页头） */
+  .tago-page::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    width: 96px;
+    height: 14px;
+    background: rgba(244, 201, 76, .38);
+    transform: translateX(-50%) rotate(-1.5deg);
+    border-radius: 0 0 3px 3px;
+    pointer-events: none;
+  }
+
+  /* 登录 / 注册 / 重置页是全屏沉浸式版式：恢复原浅纸底，不套桌面舞台 */
+  uni-page-body:has(.auth-shell) {
+    background: var(--tago-paper) !important;
+  }
+
+  uni-page-body:has(.auth-shell)::before,
+  uni-page-body:has(.auth-shell)::after {
+    content: none !important;
+  }
+
+  /* 固定定位的底部导航跟随纸卡宽度 */
+  .tabs { max-width: 500px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; }
+}
